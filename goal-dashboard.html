@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>涓汉鐩爣鐪嬫澘 | Goal Dashboard</title>
+<style>
+/* ========== CSS Variables & Theme ========== */
+:root {
+  --bg-primary: #f4f6fb;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fafbff;
+  --text-primary: #1a1d2e;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border-color: #e5e7eb;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
+  --ring-track: #f0f0f5;
+  --tag-in-progress: #dbeafe;
+  --tag-in-progress-text: #2563eb;
+  --tag-completed: #dcfce7;
+  --tag-completed-text: #16a34a;
+  --tag-behind: #fee2e2;
+  --tag-behind-text: #dc2626;
+  --streak-badge: #fef3c7;
+  --streak-text: #d97706;
+  --quote-bg: linear-gradient(135deg, #667eea11, #764ba211);
+  --toggle-bg: #e5e7eb;
+  --toggle-icon: #fbbf24;
+  --health-color: #10b981;
+  --health-bg: #ecfdf5;
+  --health-light: rgba(16, 185, 129, 0.12);
+  --health-gradient: linear-gradient(90deg, #10b981, #34d399);
+  --transition-speed: 0.45s;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f1117;
+  --bg-card: #1a1d2e;
+  --bg-card-hover: #222640;
+  --text-primary: #e8eaf0;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2a2d3e;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,0.5);
+  --ring-track: #2a2d3e;
+  --tag-in-progress: rgba(59, 130, 246, 0.2);
+  --tag-in-progress-text: #60a5fa;
+  --tag-completed: rgba(34, 197, 94, 0.2);
+  --tag-completed-text: #4ade80;
+  --tag-behind: rgba(239, 68, 68, 0.2);
+  --tag-behind-text: #f87171;
+  --streak-badge: rgba(251, 191, 36, 0.15);
+  --streak-text: #fbbf24;
+  --quote-bg: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+  --toggle-bg: #2a2d3e;
+  --toggle-icon: #fbbf24;
+  --health-color: #34d399;
+  --health-bg: rgba(16, 185, 129, 0.1);
+  --health-light: rgba(52, 211, 153, 0.1);
+  --health-gradient: linear-gradient(90deg, #34d399, #6ee7b7);
+  --neon-glow: 0 0 20px rgba(52, 211, 153, 0.3);
+}
+
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ========== Theme Toggle ========== */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-speed) ease;
+}
+.theme-toggle:hover { transform: scale(1.08); box-shadow: var(--shadow-lg); }
+.theme-toggle:active { transform: scale(0.95); }
+.theme-toggle svg { transition: all 0.3s ease; }
+[data-theme="dark"] .theme-toggle { border-color: rgba(251,191,36,0.3); }
+
+/* ========== Container ========== */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 40px;
+}
+
+/* ========== Header ========== */
+.page-header {
+  text-align: center;
+  margin-bottom: 36px;
+  padding-top: 20px;
+}
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+.page-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ========== Overview Section ========== */
+.overview {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+  background: var(--bg-card);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 32px;
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-speed) ease;
+}
+
+/* Ring Chart */
+.ring-wrapper {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+}
+.ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-track {
+  fill: none;
+  stroke: var(--ring-track);
+  stroke-width: 12;
+}
+.ring-progress {
+  fill: none;
+  stroke: var(--health-color);
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: 377;
+  stroke-dashoffset: 377;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-theme="dark"] .ring-progress {
+  filter: drop-shadow(0 0 8px rgba(52,211,153,0.5));
+}
+.ring-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.ring-percent {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.ring-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Pending Tasks */
+.pending-section h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+.pending-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.pending-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--health-light);
+  border: 1px solid rgba(16,185,129,0.15);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+[data-theme="dark"] .pending-item {
+  border-color: rgba(52,211,153,0.12);
+}
+.pending-item:hover { transform: translateX(4px); background: var(--health-bg); }
+.pending-item.completed {
+  opacity: 0.5;
+  background: transparent;
+  border-color: var(--border-color);
+}
+.pending-item.completed .pending-text { text-decoration: line-through; }
+.pending-item.completed .pending-check { background: var(--health-color); }
+.pending-check {
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--health-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+.pending-check svg { opacity: 0; transition: opacity 0.2s ease; }
+.pending-item.completed .pending-check svg { opacity: 1; }
+.pending-text { font-size: 0.92rem; font-weight: 500; flex: 1; }
+.pending-emoji { font-size: 1.1rem; }
+
+/* ========== Section Title ========== */
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title .icon { font-size: 1.3rem; }
+
+/* ========== Goal Cards Grid ========== */
+.goals-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-bottom: 32px;
+}
+
+/* ========== Goal Card ========== */
+.goal-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 24px 26px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-speed) ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.goal-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.goal-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  background: var(--bg-card-hover);
+}
+[data-theme="dark"] .goal-card:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+.goal-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.goal-info { flex: 1; }
+.goal-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.goal-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.goal-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Status Tags */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.status-tag.in-progress { background: var(--tag-in-progress); color: var(--tag-in-progress-text); }
+.status-tag.completed { background: var(--tag-completed); color: var(--tag-completed-text); }
+.status-tag.behind { background: var(--tag-behind); color: var(--tag-behind-text); }
+
+/* Streak Badge */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--streak-badge);
+  color: var(--streak-text);
+}
+
+/* Progress Bar */
+.progress-wrapper { margin-bottom: 12px; cursor: pointer; position: relative; }
+.progress-wrapper:hover .progress-bar-track {
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+  border-radius: 12px;
+}
+.progress-wrapper:active .progress-bar-track {
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.35);
+}
+.progress-click-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--health-color);
+  background: var(--bg-card);
+  padding: 2px 8px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.progress-wrapper:hover .progress-click-hint { opacity: 1; }
+.progress-bar-track {
+  width: 100%;
+  height: 10px;
+  background: var(--ring-track);
+  border-radius: 10px;
+  position: relative;
+  overflow: visible;
+  transition: box-shadow 0.2s ease;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: var(--health-gradient);
+  width: 0%;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+[data-theme="dark"] .progress-bar-fill {
+  box-shadow: 0 0 12px rgba(52,211,153,0.4);
+}
+.progress-percent {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--health-color);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.progress-percent span:last-child {
+  font-weight: 600;
+}
+
+/* Milestones */
+.milestones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding: 0 2px;
+}
+.milestone-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2.5px solid var(--health-color);
+  background: var(--bg-card);
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+.milestone-dot.achieved {
+  background: var(--health-color);
+  box-shadow: 0 0 8px rgba(16,185,129,0.35);
+}
+[data-theme="dark"] .milestone-dot.achieved {
+  box-shadow: 0 0 10px rgba(52,211,153,0.5);
+}
+.milestone-dot::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.milestone-connector {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  right: 10px;
+  height: 2px;
+  background: var(--border-color);
+  transform: translateY(-50%);
+  z-index: 1;
+}
+.milestone-connector-fill {
+  height: 100%;
+  background: var(--health-color);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Edit button */
+.goal-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+.goal-edit-btn:hover { color: var(--text-primary); background: var(--ring-track); }
+
+/* Edit Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg-card);
+  border-radius: 24px;
+  padding: 32px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  animation: modalIn 0.3s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 20px; }
+.modal label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.modal input, .modal select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  margin-bottom: 16px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.modal input:focus, .modal select:focus { border-color: var(--health-color); }
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.btn {
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: var(--health-color); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { background: var(--ring-track); color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--border-color); }
+
+/* ========== Quote Section ========== */
+.quote-section {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-speed) ease;
+}
+[data-theme="dark"] .quote-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--quote-bg);
+  pointer-events: none;
+}
+.quote-text {
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.8;
+  margin-bottom: 8px;
+  min-height: 3.6em;
+  transition: opacity 0.5s ease;
+  position: relative;
+}
+.quote-author {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  transition: opacity 0.5s ease;
+  position: relative;
+}
+.quote-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.quote-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.quote-dot.active {
+  background: var(--health-color);
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* ========== Footer ========== */
+.footer {
+  text-align: center;
+  padding: 24px 0 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 640px) {
+  .container { padding: 20px 14px 32px; }
+  .overview {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 24px 20px;
+    gap: 20px;
+  }
+  .ring-wrapper { width: 140px; height: 140px; }
+  .ring-percent { font-size: 1.8rem; }
+  .page-header h1 { font-size: 1.5rem; }
+  .goal-card { padding: 20px; border-radius: 16px; }
+  .goal-top { flex-direction: column; gap: 10px; }
+  .goal-meta { align-self: flex-start; }
+  .milestone-dot::after { font-size: 0.6rem; }
+  .theme-toggle { top: 14px; right: 14px; width: 44px; height: 44px; }
+}
+
+/* ========== Animations ========== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<!-- Theme Toggle -->
+<button class="theme-toggle" id="themeToggle" aria-label="鍒囨崲涓婚">
+  <svg id="sunIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+  <svg id="moonIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none;">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<div class="container">
+  <!-- Header -->
+  <header class="page-header animate-in">
+    <h1>鎴戠殑鐩爣鐪嬫澘</h1>
+    <p>杩借釜姣忔棩杩涘睍锛屾寔缁簿杩涜嚜鎴?/p>
+  </header>
+
+  <!-- Overview -->
+  <section class="overview animate-in" style="animation-delay:0.1s">
+    <div class="ring-wrapper">
+      <svg class="ring-svg" viewBox="0 0 128 128">
+        <circle class="ring-track" cx="64" cy="64" r="60"/>
+        <circle class="ring-progress" id="ringProgress" cx="64" cy="64" r="60"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-percent" id="ringPercent">0%</div>
+        <div class="ring-label">浠婃棩瀹屾垚搴?/div>
+      </div>
+    </div>
+    <div class="pending-section">
+      <h3>浠婃棩寰呭畬鎴?/h3>
+      <ul class="pending-list" id="pendingList"></ul>
+    </div>
+  </section>
+
+  <!-- Weekly Goals -->
+  <div class="section-title animate-in" style="animation-delay:0.2s">
+    <span class="icon">&#127947;</span> 鏈懆姣忔棩鐩爣
+  </div>
+  <div class="goals-grid" id="goalsGrid"></div>
+
+  <!-- Quote Carousel -->
+  <section class="quote-section animate-in" style="animation-delay:0.6s">
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-author" id="quoteAuthor"></div>
+    <div class="quote-dots" id="quoteDots"></div>
+  </section>
+
+  <div class="footer">鐢ㄥ潥鎸佸畾涔夎嚜宸?路 Goal Dashboard</div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>缂栬緫鐩爣</h3>
+    <label for="editName">鐩爣鍚嶇О</label>
+    <input type="text" id="editName">
+    <label for="editDesc">鎻忚堪</label>
+    <input type="text" id="editDesc">
+    <label for="editProgress">杩涘害 (%)</label>
+    <input type="number" id="editProgress" min="0" max="100">
+    <label for="editStreak">杩炵画鎵撳崱澶╂暟</label>
+    <input type="number" id="editStreak" min="0">
+    <label for="editStatus">鐘舵€?/label>
+    <select id="editStatus">
+      <option value="in-progress">杩涜涓?/option>
+      <option value="completed">宸插畬鎴?/option>
+      <option value="behind">钀藉悗</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">鍙栨秷</button>
+      <button class="btn btn-primary" id="modalSave">淇濆瓨</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== Data ========== */
+const goals = [
+  {
+    id: 'short-video',
+    name: '鐭棰?鈮?1灏忔椂/澶?,
+    desc: '鎺у埗灞忓箷鏃堕棿锛屽皢鏇村绮惧姏鎶曞叆鏈変环鍊肩殑浜嬫儏',
+    emoji: '&#128241;',
+    progress: 0,
+    streak: 7,
+    status: 'in-progress',
+    milestones: [
+      { pos: 25, label: '绗?澶?, achieved: false },
+      { pos: 50, label: '绗?澶?, achieved: false },
+      { pos: 75, label: '绗?4澶?, achieved: false },
+      { pos: 100, label: '杩炵画21澶?, achieved: false }
+    ],
+    completedToday: false
+  },
+  {
+    id: 'workout',
+    name: '淇崸鎾?0涓?+ 寮曚綋鍚戜笂10涓?,
+    desc: '姣忔棩鍔涢噺璁粌锛屽閫犳洿寮哄仴鐨勪綋榄?,
+    emoji: '&#128170;',
+    progress: 0,
+    streak: 7,
+    status: 'in-progress',
+    milestones: [
+      { pos: 25, label: '绗?澶?, achieved: false },
+      { pos: 50, label: '绗?澶?, achieved: false },
+      { pos: 75, label: '绗?4澶?, achieved: false },
+      { pos: 100, label: '杩炵画21澶?, achieved: false }
+    ],
+    completedToday: false
+  },
+  {
+    id: 'english',
+    name: '鏈楄鑻辫 20鍒嗛挓/澶?,
+    desc: '鍩瑰吇璇劅锛屾彁鍗囧彛璇祦鍒╁害鍜屽惉鍔涚悊瑙?,
+    emoji: '&#127468;&#127463;',
+    progress: 0,
+    streak: 7,
+    status: 'in-progress',
+    milestones: [
+      { pos: 25, label: '绗?澶?, achieved: false },
+      { pos: 50, label: '绗?澶?, achieved: false },
+      { pos: 75, label: '绗?4澶?, achieved: false },
+      { pos: 100, label: '杩炵画21澶?, achieved: false }
+    ],
+    completedToday: false
+  },
+  {
+    id: 'spanish',
+    name: '瑗跨彮鐗欒 15鍒嗛挓/澶?,
+    desc: '寮€鎷撶浜屽璇紝绉疮鍩虹璇嶆眹鍜屽彞鍨?,
+    emoji: '&#127466;&#127480;',
+    progress: 0,
+    streak: 7,
+    status: 'behind',
+    milestones: [
+      { pos: 25, label: '绗?澶?, achieved: false },
+      { pos: 50, label: '绗?澶?, achieved: false },
+      { pos: 75, label: '绗?4澶?, achieved: false },
+      { pos: 100, label: '杩炵画21澶?, achieved: false }
+    ],
+    completedToday: false
+  }
+];
+
+const quotes = [
+  { zh: '涓嶇Н璺锛屾棤浠ヨ嚦鍗冮噷銆?, en: 'A journey of a thousand miles begins with a single step.', author: '鑽€瀛?/ Lao Tzu' },
+  { zh: '鑷緥缁欐垜鑷敱銆?, en: 'Discipline is the bridge between goals and accomplishment.', author: 'Jim Rohn' },
+  { zh: '浼熷ぇ涓嶆槸鍑┖鑰屾潵鐨勶紝浼熷ぇ鏄耽寰楃殑銆?, en: 'Greatness is not a destination, it is a continuous journey.', author: '鏈悕 / Unknown' },
+  { zh: '鎾琛屼负锛屾敹鑾蜂範鎯紱鎾涔犳儻锛屾敹鑾锋€ф牸銆?, en: 'Sow a thought, reap an action; sow an action, reap a habit.', author: 'Will Durant' },
+  { zh: '鍧氭寔鐨勪汉涓嶄竴瀹氫細璧紝浣嗘斁寮冪殑浜轰竴瀹氫細杈撱€?, en: 'It does not matter how slowly you go as long as you do not stop.', author: 'Confucius' }
+];
+
+/* ========== Theme ========== */
+const themeToggle = document.getElementById('themeToggle');
+const sunIcon = document.getElementById('sunIcon');
+const moonIcon = document.getElementById('moonIcon');
+
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('goal-theme', theme);
+  if (theme === 'dark') {
+    sunIcon.style.display = 'none';
+    moonIcon.style.display = 'block';
+  } else {
+    sunIcon.style.display = 'block';
+    moonIcon.style.display = 'none';
+  }
+}
+
+const saved = localStorage.getItem('goal-theme');
+setTheme(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+themeToggle.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  setTheme(current === 'dark' ? 'light' : 'dark');
+});
+
+/* ========== Ring Chart ========== */
+function updateRing() {
+  const completed = goals.filter(g => g.completedToday).length;
+  const percent = Math.round((completed / goals.length) * 100);
+  const circumference = 2 * Math.PI * 60; // r=60
+  const offset = circumference - (percent / 100) * circumference;
+
+  const ring = document.getElementById('ringProgress');
+  const text = document.getElementById('ringPercent');
+
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference;
+
+  requestAnimationFrame(() => {
+    ring.style.strokeDashoffset = offset;
+  });
+
+  animateCounter(text, 0, percent, 1200);
+}
+
+function animateCounter(el, from, to, duration) {
+  const start = performance.now();
+  function step(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(from + (to - from) * eased) + '%';
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ========== Pending List ========== */
+function renderPending() {
+  const list = document.getElementById('pendingList');
+  list.innerHTML = '';
+  goals.forEach(goal => {
+    const li = document.createElement('li');
+    li.className = 'pending-item' + (goal.completedToday ? ' completed' : '');
+    li.innerHTML = `
+      <span class="pending-emoji">${goal.emoji}</span>
+      <span class="pending-text">${goal.name}</span>
+      <span class="pending-check">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+          <polyline points="2,6 5,9 10,3"/>
+        </svg>
+      </span>`;
+    li.addEventListener('click', () => {
+      goal.completedToday = !goal.completedToday;
+      saveData();
+      renderPending();
+      updateRing();
+    });
+    list.appendChild(li);
+  });
+}
+
+/* ========== Goal Cards ========== */
+let editingIndex = null;
+
+function renderGoals() {
+  const grid = document.getElementById('goalsGrid');
+  grid.innerHTML = '';
+  goals.forEach((goal, i) => {
+    const card = document.createElement('div');
+    card.className = 'goal-card';
+
+    const statusLabels = { 'in-progress': '杩涜涓?, 'completed': '宸插畬鎴?, 'behind': '钀藉悗' };
+
+    const milestoneHTML = goal.milestones.map(m =>
+      `<div class="milestone-dot ${m.achieved ? 'achieved' : ''}" data-label="${m.label}"></div>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="goal-top">
+        <div class="goal-info">
+          <div class="goal-name">${goal.emoji} ${goal.name}</div>
+          <div class="goal-desc">${goal.desc}</div>
+        </div>
+        <div class="goal-meta">
+          <span class="streak-badge">&#128293; ${goal.streak}澶?/span>
+          <span class="status-tag ${goal.status}">${statusLabels[goal.status]}</span>
+          <button class="goal-edit-btn" data-index="${i}" aria-label="缂栬緫">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M11.5 1.5l3 3L4.5 14.5H1.5v-3L11.5 1.5z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="progress-wrapper" data-goal-index="${i}" title="鐐瑰嚮鎵撳崱 +1 澶?>
+        <div class="progress-percent">
+          <span>瀹屾垚杩涘害</span>
+          <span class="goal-progress-value">${goal.progress}%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" data-width="${goal.progress}"></div>
+        </div>
+        <div class="progress-click-hint">鐐瑰嚮鎵撳崱</div>
+      </div>
+      <div class="milestones">
+        <div class="milestone-connector">
+          <div class="milestone-connector-fill" data-width="${goal.progress}"></div>
+        </div>
+        ${milestoneHTML}
+      </div>`;
+
+    grid.appendChild(card);
+
+    // staggered entrance
+    setTimeout(() => card.classList.add('visible'), 100 + i * 120);
+
+    // animate progress bar
+    setTimeout(() => {
+      card.querySelector('.progress-bar-fill').style.width = goal.progress + '%';
+      card.querySelector('.milestone-connector-fill').style.width = goal.progress + '%';
+    }, 300 + i * 120);
+  });
+
+  // bind edit buttons
+  grid.querySelectorAll('.goal-edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(btn.dataset.index);
+      openModal(idx);
+    });
+  });
+
+  // bind click-to-checkin on progress bars
+  grid.querySelectorAll('.progress-wrapper').forEach(wrapper => {
+    wrapper.addEventListener('click', () => {
+      const idx = parseInt(wrapper.dataset.goalIndex);
+      checkinGoal(idx);
+    });
+  });
+}
+
+/* ========== Click to Checkin ========== */
+function checkinGoal(index) {
+  const goal = goals[index];
+
+  // If already completed today, undo
+  if (goal.completedToday) {
+    goal.completedToday = false;
+    goal.streak = Math.max(0, goal.streak - 1);
+    goal.progress = Math.max(0, goal.progress - 5);
+    goal.status = goal.progress <= 20 ? 'behind' : 'in-progress';
+  } else {
+    // Checkin: +1 day, +5% progress
+    goal.completedToday = true;
+    goal.streak += 1;
+    goal.progress = Math.min(100, goal.progress + 5);
+    if (goal.progress >= 100) {
+      goal.status = 'completed';
+    } else {
+      goal.status = 'in-progress';
+    }
+  }
+
+  // Update milestones
+  goal.milestones.forEach(m => {
+    m.achieved = goal.streak >= m.pos;
+  });
+
+  saveData();
+  renderGoals();
+  renderPending();
+  updateRing();
+
+  // Visual feedback: pulse the card
+  const cards = document.querySelectorAll('.goal-card');
+  if (cards[index]) {
+    cards[index].style.transition = 'transform 0.15s ease';
+    cards[index].style.transform = 'scale(0.98)';
+    setTimeout(() => {
+      cards[index].style.transform = goal.completedToday ? 'translateY(-2px)' : 'translateY(0)';
+    }, 150);
+  }
+}
+
+/* ========== Modal ========== */
+const modalOverlay = document.getElementById('modalOverlay');
+
+function openModal(index) {
+  editingIndex = index;
+  const g = goals[index];
+  document.getElementById('editName').value = g.name.replace(/^[^\s]+\s/, '');
+  document.getElementById('editDesc').value = g.desc;
+  document.getElementById('editProgress').value = g.progress;
+  document.getElementById('editStreak').value = g.streak;
+  document.getElementById('editStatus').value = g.status;
+  modalOverlay.classList.add('active');
+}
+
+function closeModal() {
+  modalOverlay.classList.remove('active');
+  editingIndex = null;
+}
+
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+document.getElementById('modalSave').addEventListener('click', () => {
+  if (editingIndex === null) return;
+  const g = goals[editingIndex];
+  g.desc = document.getElementById('editDesc').value;
+  g.progress = Math.max(0, Math.min(100, parseInt(document.getElementById('editProgress').value) || 0));
+  g.streak = Math.max(0, parseInt(document.getElementById('editStreak').value) || 0);
+  g.status = document.getElementById('editStatus').value;
+  if (g.progress >= 100) g.status = 'completed';
+  saveData();
+  renderGoals();
+  updateRing();
+  closeModal();
+});
+
+/* ========== Quotes Carousel ========== */
+let currentQuote = 0;
+
+function renderQuotes() {
+  const textEl = document.getElementById('quoteText');
+  const authorEl = document.getElementById('quoteAuthor');
+  const dotsEl = document.getElementById('quoteDots');
+
+  quotes.forEach((_, i) => {
+    const dot = document.createElement('span');
+    dot.className = 'quote-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => showQuote(i));
+    dotsEl.appendChild(dot);
+  });
+
+  showQuote(0);
+  setInterval(() => {
+    showQuote((currentQuote + 1) % quotes.length);
+  }, 5000);
+}
+
+function showQuote(index) {
+  currentQuote = index;
+  const textEl = document.getElementById('quoteText');
+  const authorEl = document.getElementById('quoteAuthor');
+  const dots = document.querySelectorAll('.quote-dot');
+
+  textEl.style.opacity = '0';
+  authorEl.style.opacity = '0';
+
+  setTimeout(() => {
+    textEl.innerHTML = `&#34;${quotes[index].zh}&#34;<br><span style="font-size:0.88em;color:var(--text-secondary)">${quotes[index].en}</span>`;
+    authorEl.textContent = '鈥?' + quotes[index].author;
+    textEl.style.opacity = '1';
+    authorEl.style.opacity = '1';
+  }, 300);
+
+  dots.forEach((d, i) => d.classList.toggle('active', i === index));
+}
+
+/* ========== Persistence ========== */
+const STORAGE_KEY = 'goal-data-v2';
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(goals.map(g => ({
+    id: g.id, progress: g.progress, streak: g.streak, status: g.status,
+    completedToday: g.completedToday, desc: g.desc
+  }))));
+}
+
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const saved = JSON.parse(raw);
+    saved.forEach(s => {
+      const g = goals.find(x => x.id === s.id);
+      if (g) {
+        g.progress = s.progress ?? g.progress;
+        g.streak = s.streak ?? g.streak;
+        g.status = s.status ?? g.status;
+        g.completedToday = s.completedToday ?? g.completedToday;
+        g.desc = s.desc ?? g.desc;
+      }
+    });
+  } catch (e) { /* ignore corrupt data */ }
+}
+
+/* ========== Init ========== */
+loadData();
+renderPending();
+renderGoals();
+updateRing();
+renderQuotes();
+</script>
+</body>
+</html>
