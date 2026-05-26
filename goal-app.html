@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -55,7 +56,7 @@
   --shadow: 0 2px 16px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+*, *::before, *::after { box-sizing: border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; overflow: hidden; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
@@ -609,8 +610,8 @@ const QUOTES = [
   { zh:'涓嶇Н璺锛屾棤浠ヨ嚦鍗冮噷銆?, en:'A journey of a thousand miles begins with a single step.', by:'鑽€瀛? },
   { zh:'鑷緥缁欐垜鑷敱銆?, en:'Discipline is the bridge between goals and accomplishment.', by:'Jim Rohn' },
   { zh:'鎾涔犳儻锛屾敹鑾锋€ф牸锛涙挱绉嶆€ф牸锛屾敹鑾峰懡杩愩€?, en:'Sow an action, reap a habit; sow a habit, reap a character.', by:'William James' },
-  { zh:'鍧氭寔鐨勪汉涓嶄竴瀹氳耽锛屼絾鏀惧純鐨勪汉涓€瀹氳緭銆?, en:'It does not matter how slowly you go as long as you do not stop.', by:'Confucius' },
-  { zh:'浠婂ぉ鐨勫姫鍔涙槸鏄庡ぉ鐨勫簳姘斻€?, en:'Today\'s effort is tomorrow\'s confidence.', by:'鏈悕' }
+  { zh:'鍧氭寔鐨勪汉涓嶄竴瀹氳耽锛屼絾鏀惧純鐨勪汉涓€瀹氳緭銆?, en:'It does not matter how slowly you go as long as you do not stop.', by:'瀛斿瓙' },
+  { zh:'浠婂ぉ鐨勫姫鍔涙槸鏄庡ぉ鐨勫簳姘斻€?, en:'Today\'s effort is tomorrow\'s confidence.', by:'浣氬悕' }
 ];
 
 let goals = [];
@@ -666,7 +667,7 @@ function updateRing() {
 function animCount(el, to) {
   let from = parseInt(el.textContent) || 0;
   const dur = 800, start = performance.now();
-  const step = now => {
+  const step = (now) => {
     const p = Math.min((now - start) / dur, 1);
     el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3))) + '%';
     if (p < 1) requestAnimationFrame(step);
@@ -856,7 +857,7 @@ document.getElementById('fProgress').addEventListener('input', function() {
   document.getElementById('fProgressVal').textContent = this.value + '%';
 });
 document.getElementById('addGoalBtn').addEventListener('click', () => openSheet());
-document.getElementById('sheetOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeSheet(); });
+document.getElementById('sheetOverlay').addEventListener('click', function(e) { if (e.target === e.currentTarget) closeSheet(); });
 
 /* 鈹€鈹€鈹€ Quotes 鈹€鈹€鈹€ */
 function renderQuotes() {
@@ -865,7 +866,7 @@ function renderQuotes() {
     `<div class="q-dot ${i===0?'on':''}" onclick="showQ(${i})"></div>`
   ).join('');
   showQ(0);
-  setInterval(() => showQ((quoteIdx + 1) % QUOTES.length), 5000);
+  setInterval(() => { quoteIdx = (quoteIdx + 1) % QUOTES.length; showQ(quoteIdx); }, 5000);
 }
 function showQ(i) {
   quoteIdx = i;
